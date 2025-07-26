@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Waste Segregation Advisor</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="menubar">
+                <div class="app-title"></div>
+                <nav>
+                    <ul class="menu-items">
+                        <li><a href="index.html" class="active">Home</a></li>
+                        <li><a href="chatbot.html">Chatbot</a></li>
+                        <li><a href="dashboard.html" id="dashboardLink">Dashboard</a></li>
+                        <li><a href="#" id="loginBtn">Login</a></li>
+                        <li><a href="#" id="logoutBtn" class="hidden">Logout</a></li>
+                    </ul>
+                </nav>
+            </nav>
+            <h1>AI Waste Segregation Advisor</h1>
+            <p>Upload an image of your waste item to get instant classification and disposal guidance</p>
+        </header>
+
+        <main>
+            <!-- User Stats Section -->
+            <div class="user-stats-section hidden" id="userStats">
+                <div class="stats-card">
+                    <h3>Your Impact Today</h3>
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <span class="stat-value" id="todayWaste">0</span>
+                            <span class="stat-label">kg Segregated</span>
+                            <span class="stat-info">Total weight of waste items segregated today</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="todayCO2">0</span>
+                            <span class="stat-label">kg CO₂ Saved</span>
+                            <span class="stat-info">Based on category: Recyclable (0.5kg), Organic (0.3kg), Hazardous (0.8kg), General (0.2kg)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="userPoints">0</span>
+                            <span class="stat-label">Points Earned</span>
+                            <span class="stat-info">Points per category: Recyclable (10), Organic (8), Hazardous (15), General (5)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="userStreak">0</span>
+                            <span class="stat-label">Day Streak</span>
+                            <span class="stat-info">Consecutive days of waste segregation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <div class="upload-box" id="uploadBox">
+                    <img src="https://via.placeholder.com/150" alt="Preview" id="imagePreview" class="hidden">
+                    <div class="upload-content" id="uploadContent">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2965/2965879.png" alt="Upload Icon" class="upload-icon">
+                        <p>Drag & Drop or Click to Upload</p>
+                        <input type="file" id="fileInput" accept="image/*" hidden>
+                    </div>
+                </div>
+                <button class="upload-btn" id="uploadBtn">Upload Image</button>
+            </div>
+
+            <div class="result-section hidden" id="resultSection">
+                <div class="result-card">
+                    <h2>Classification Result</h2>
+                    <div class="result-content">
+                        <div class="category">
+                            <span class="label">Category:</span>
+                            <span class="value" id="categoryResult">-</span>
+                        </div>
+                        <div class="confidence">
+                            <span class="label">Confidence:</span>
+                            <span class="value" id="confidenceResult">-</span>
+                        </div>
+                        <div class="points-earned">
+                            <span class="label">Points Earned:</span>
+                            <span class="value" id="pointsEarned">-</span>
+                        </div>
+                        <div class="co2-saved">
+                            <span class="label">CO₂ Saved:</span>
+                            <span class="value" id="co2Saved">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="disposal-info">
+                    <h3>Disposal Instructions</h3>
+                    <p id="disposalInstructions">Upload an image to get disposal instructions.</p>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>Waste Categories</h2>
+                <div class="category-grid">
+                    <div class="category-card recyclable">
+                        <h3>Recyclable</h3>
+                        <p>Paper, plastic, metal, glass</p>
+                        <div class="category-stats">
+                            <span class="points">+10 points</span>
+                            <span class="co2">-0.5 kg CO₂</span>
+                        </div>
+                    </div>
+                    <div class="category-card organic">
+                        <h3>Organic</h3>
+                        <p>Food waste, garden waste</p>
+                        <div class="category-stats">
+                            <span class="points">+8 points</span>
+                            <span class="co2">-0.3 kg CO₂</span>
+                        </div>
+                    </div>
+                    <div class="category-card hazardous">
+                        <h3>Hazardous</h3>
+                        <p>Batteries, chemicals, electronics</p>
+                        <div class="category-stats">
+                            <span class="points">+15 points</span>
+                            <span class="co2">-0.8 kg CO₂</span>
+                        </div>
+                    </div>
+                    <div class="category-card general">
+                        <h3>General Waste</h3>
+                        <p>Non-recyclable items</p>
+                        <div class="category-stats">
+                            <span class="points">+5 points</span>
+                            <span class="co2">-0.2 kg CO₂</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Login Modal -->
+        <div id="authModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <div class="auth-form-container">
+                    <div class="auth-tabs">
+                        <button class="tab-button active" id="loginTab">Login</button>
+                        <button class="tab-button" id="registerTab">Register</button>
+                    </div>
+                    
+                    <form id="loginForm" class="auth-form">
+                        <h2>Login</h2>
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="submit-btn">Login</button>
+                    </form>
+
+                    <form id="registerForm" class="auth-form hidden">
+                        <h2>Register</h2>
+                        <div class="form-group">
+                            <label for="registerEmail">Email</label>
+                            <input type="email" id="registerEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword">Password</label>
+                            <input type="password" id="registerPassword" required>
+                        </div>
+                        <button type="submit" class="submit-btn">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2025 NIIT AI Waste Segregation Advisor. All rights reserved.</p>
+        </footer>
+    </div>
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

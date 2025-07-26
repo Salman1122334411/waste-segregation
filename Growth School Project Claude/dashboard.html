@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="menubar">
+                <div class="app-title"></div>
+                <ul class="menu-items">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="chatbot.html">Chatbot</a></li>
+                    <li><a href="dashboard.html" id="dashboardLink" class="active">Dashboard</a></li>
+                    <li><a href="#" id="loginBtn">Login</a></li>
+                    <li><a href="#" id="logoutBtn" class="hidden">Logout</a></li>
+                </ul>
+            </nav>
+            <h1>Your Dashboard</h1>
+            <p>Welcome to your personalized waste segregation dashboard.</p>
+        </header>
+
+        <main>
+            <div class="dashboard-content">
+                <section class="user-stats-section" id="userStats">
+                    <div class="stats-card">
+                        <h3>Your Impact Overview</h3>
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <span class="stat-value" id="totalWaste">0</span> 🗑️
+                                <span class="stat-label">kg Total Segregated</span>
+                                <span class="stat-info">Cumulative weight of waste items you've segregated.</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="totalCO2">0</span> 🍃
+                                <span class="stat-label">kg CO₂ Saved</span>
+                                <span class="stat-info">Estimated CO₂ reduction based on your segregation.</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="lifetimePoints">0</span> ⭐
+                                <span class="stat-label">Lifetime Points</span>
+                                <span class="stat-info">Your total accumulated points from proper waste disposal.</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="currentStreak">0</span> 🔥
+                                <span class="stat-label">Day Streak</span>
+                                <span class="stat-info">Consecutive days you've recorded waste segregation.</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <h2>Your Segregation Trends</h2>
+                <section class="charts-section">
+                    <div class="chart-wrapper">
+                        <div class="chart-header">
+                            <h3>Daily Waste Segregated (kg)</h3>
+                        </div>
+                        <canvas id="dailyWasteChart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="chart-header">
+                            <h3>Category Segregation (kg)</h3>
+                        </div>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </section>
+
+                <section class="achievements-section">
+                    <div class="section-header">
+                        <h3>Your Achievements</h3>
+                    </div>
+                    <div class="achievements-grid">
+                        <div class="achievement-card" id="recyclingMaster">
+                            <span class="achievement-icon">🏆</span>
+                            <h4>Recycling Master</h4>
+                            <p>Segregate 1000 points worth of recyclable waste.</p>
+                        </div>
+                        <div class="achievement-card" id="greenWarrior">
+                            <span class="achievement-icon">🌿</span>
+                            <h4>Green Warrior</h4>
+                            <p>Save 50 kg of CO₂ through proper disposal.</p>
+                        </div>
+                        <div class="achievement-card" id="consistencyKing">
+                            <span class="achievement-icon">👑</span>
+                            <h4>Consistency King</h4>
+                            <p>Maintain a 7-day waste segregation streak.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2025 NIIT AI Waste Segregation Advisor. All rights reserved.</p>
+        </footer>
+    </div>
+    <script src="auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to load and display user data
+            function loadDashboardData() {
+                const currentUserId = getCurrentUserId();
+                if (currentUserId) {
+                    const userData = getUserData(currentUserId);
+                    if (userData) {
+                        document.getElementById('totalWaste').textContent = (userData.totalWaste || 0).toFixed(1);
+                        document.getElementById('totalCO2').textContent = (userData.co2Saved || 0).toFixed(1);
+                        document.getElementById('lifetimePoints').textContent = userData.points || 0;
+                        document.getElementById('currentStreak').textContent = userData.streak || 0;
+
+                        // Update achievement cards
+                        if (userData.achievements) {
+                            if (userData.achievements.recyclingMaster) {
+                                document.getElementById('recyclingMaster').classList.add('unlocked');
+                            }
+                            if (userData.achievements.greenWarrior) {
+                                document.getElementById('greenWarrior').classList.add('unlocked');
+                            }
+                            if (userData.achievements.consistencyKing) {
+                                document.getElementById('consistencyKing').classList.add('unlocked');
+                            }
+                        }
+
+                        // Prepare data for Daily Waste Chart
+                        const dailyWasteDates = Object.keys(userData.dailyWaste || {}).sort();
+                        const dailyWasteValues = dailyWasteDates.map(date => userData.dailyWaste[date]);
+
+                        // Prepare data for Category Segregation Chart
+                        const categoryLabels = ['Recyclable', 'Organic', 'Hazardous', 'General Waste'];
+                        const categoryData = categoryLabels.map(cat => (userData.categoryCounts ? userData.categoryCounts[cat.toLowerCase()] || 0 : 0));
+
+                        renderCharts(dailyWasteDates, dailyWasteValues, categoryLabels, categoryData);
+                    }
+                } else {
+                    // Redirect to login if not logged in
+                    window.location.href = 'index.html'; // Or show a message
+                }
+            }
+
+            function renderCharts(dailyWasteDates, dailyWasteValues, categoryLabels, categoryData) {
+                // Daily Waste Chart
+                const dailyWasteCtx = document.getElementById('dailyWasteChart').getContext('2d');
+                new Chart(dailyWasteCtx, {
+                    type: 'line',
+                    data: {
+                        labels: dailyWasteDates,
+                        datasets: [{
+                            label: 'Waste Segregated (kg)',
+                            data: dailyWasteValues,
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Weight (kg)' } },
+                            x: { title: { display: true, text: 'Date' } }
+                        },
+                        plugins: { legend: { display: true } }
+                    }
+                });
+
+                // Category Segregation Chart
+                const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+                new Chart(categoryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: categoryLabels,
+                        datasets: [{
+                            label: 'Weight Segregated (kg)',
+                            data: categoryData,
+                            backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c', '#95a5a6'],
+                            borderColor: ['#27ae60', '#f39c12', '#c0392b', '#7f8c8d'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Weight (kg)' } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // Load dashboard data on page load
+            loadDashboardData();
+        });
+    </script>
+</body>
+</html> 

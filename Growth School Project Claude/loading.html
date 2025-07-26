@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Segregation - Loading</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #4CAF50, #FFC107, #F44336);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .scanner {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10; /* Ensure scanner is above other elements during item start */
+        }
+
+        .scanner::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .item {
+            font-size: 50px;
+            position: absolute; /* Item is absolutely positioned within its parent (scanner) */
+            transition: transform 1s ease; /* Animate transform properties */
+            z-index: 20; /* Ensure item is above everything during movement */
+            top: 50%; /* Center within scanner */
+            left: 50%; /* Center within scanner */
+            transform: translate(-50%, -50%); /* Center using transform */
+        }
+
+        .bins {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            position: relative;
+            z-index: 5; /* Ensure bins are below item during movement */
+        }
+
+        .bin {
+            width: 80px;
+            height: 120px;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 1s ease; /* Animate transform properties */
+        }
+
+        .bin.green { background: #2ecc71; }
+        .bin.yellow { background: #f1c40f; }
+        .bin.red { background: #e74c3c; }
+
+        .bin-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .meeting-point {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            z-index: -1; /* Behind other elements */
+            opacity: 0; /* Hidden, just for reference */
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-segments {
+            display: flex;
+            height: 100%;
+        }
+
+        .segment {
+            height: 100%;
+        }
+
+        .segment.green { width: 33.33%; background: #2ecc71; }
+        .segment.yellow { width: 33.33%; background: #f1c40f; }
+        .segment.red { width: 33.33%; background: #e74c3c; }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0;
+            background: rgba(255, 255, 255, 0.3);
+            animation: progress 13s linear forwards; /* Total time for all items */
+        }
+
+        @keyframes progress {
+            to { width: 100%; }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 18px;
+            margin: 20px 0;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="scanner">
+            <div class="item" id="currentItem"></div>
+        </div>
+        
+        <div class="loading-text" id="loadingText">Scanning waste...</div>
+        
+        <div class="bins">
+            <div class="bin green">
+                <div class="bin-label">Organic</div>
+            </div>
+            <div class="bin yellow">
+                <div class="bin-label">Recyclable</div>
+            </div>
+            <div class="bin red">
+                <div class="bin-label">Hazardous</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-segments">
+                <div class="segment green"></div>
+                <div class="segment yellow"></div>
+                <div class="segment red"></div>
+            </div>
+            <div class="progress-fill"></div>
+        </div>
+    </div>
+
+    <script>
+        const items = [
+            // Green (Organic) Items
+            { icon: '🍌', bin: 'green' },  // Banana
+            { icon: '🍎', bin: 'green' },  // Apple
+            { icon: '🍚', bin: 'green' },  // Rice
+            { icon: '🍂', bin: 'green' },  // Leaves
+            
+            // Yellow (Recyclable) Items
+            { icon: '🧴', bin: 'yellow' }, // Bottle
+            { icon: '🥫', bin: 'yellow' }, // Can
+            { icon: '🧃', bin: 'yellow' }, // Juice
+            { icon: '📄', bin: 'yellow' },  // Paper
+            
+            // Red (Hazardous) Items
+            { icon: '🩹', bin: 'red' },    // Bandage
+            { icon: '🔋', bin: 'red' },    // Battery
+            { icon: '💉', bin: 'red' },    // Syringe
+            { icon: '💄', bin: 'red' }     // Makeup Wipes
+        ];
+
+        const loadingTexts = [
+            'Training our bins to think smart...',
+            'Teaching AI to sort waste...',
+            'Preparing smart segregation system...',
+            'Initializing waste classification...'
+        ];
+
+        let currentIndex = 0;
+        const itemElement = document.getElementById('currentItem');
+        const loadingElement = document.getElementById('loadingText');
+        const container = document.querySelector('.container');
+        const scanner = document.querySelector('.scanner');
+
+        function updateLoadingText() {
+            let textIndex = 0;
+            setInterval(() => {
+                textIndex = (textIndex + 1) % loadingTexts.length;
+                loadingElement.textContent = loadingTexts[textIndex];
+            }, 3000);
+        }
+
+        function moveItem() {
+            if (currentIndex >= items.length) {
+                // All items processed, redirect
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000); // Small delay before redirect
+                return;
+            }
+
+            const item = items[currentIndex];
+            itemElement.textContent = item.icon;
+            
+            // STEP 1: Ensure initial state (item in scanner, bin at original place)
+            itemElement.style.transition = 'none'; // Temporarily disable transition for reset
+            itemElement.style.transform = 'translate(-50%, -50%)'; // Reset item to center of scanner
+            const bin = document.querySelector(`.bin.${item.bin}`);
+            bin.style.transition = 'none'; // Temporarily disable transition for reset
+            bin.style.transform = 'translate(0, 0)'; // Ensure bin is at original place
+            
+            // Force a reflow so browser applies the 'none' transition and reset transforms immediately
+            void itemElement.offsetWidth; 
+            void bin.offsetWidth;
+
+            // Re-enable transitions for the animation
+            itemElement.style.transition = 'transform 1s ease';
+            bin.style.transition = 'transform 1s ease';
+
+            // Get positions for calculations AFTER reset (these are absolute positions relative to viewport)
+            const scannerRect = scanner.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            const binRect = bin.getBoundingClientRect();
+
+            // Calculate meeting point (center of the container, in absolute viewport coordinates)
+            const meetingAbsX = containerRect.left + containerRect.width / 2;
+            const meetingAbsY = containerRect.top + containerRect.height / 2;
+
+            // Calculate the item's current visual center (which is the center of the scanner)
+            const itemCurrentAbsX = scannerRect.left + scannerRect.width / 2;
+            const itemCurrentAbsY = scannerRect.top + scannerRect.height / 2;
+
+            // Calculate the bin's current visual center (its original position)
+            const binCurrentAbsX = binRect.left + binRect.width / 2;
+            const binCurrentAbsY = binRect.top + binRect.height / 2;
+
+            // Calculate translation needed for item to move from its current (scanner) position to meeting point
+            // We need to calculate the *additional* translation, as item is already at translate(-50%, -50%)
+            const itemTranslateX = meetingAbsX - itemCurrentAbsX;
+            const itemTranslateY = meetingAbsY - itemCurrentAbsY;
+
+            // Calculate translation needed for bin to move from its current (original) position to meeting point
+            const binTranslateX = meetingAbsX - binCurrentAbsX;
+            const binTranslateY = meetingAbsY - binCurrentAbsY;
+            
+            // STEP 2: Animate both to meeting point
+            requestAnimationFrame(() => {
+                // Apply the calculated transforms, *adding* to the existing -50% for item
+                itemElement.style.transform = `translate(calc(-50% + ${itemTranslateX}px), calc(-50% + ${itemTranslateY}px))`;
+                bin.style.transform = `translate(${binTranslateX}px, ${binTranslateY}px)`;
+            });
+
+            // STEP 3: After animation to meeting point completes, return to original positions
+            setTimeout(() => {
+                itemElement.style.transition = 'none'; // Temporarily disable transition for instant snap
+                itemElement.style.transform = 'translate(-50%, -50%)'; // Item back to scanner center
+
+                bin.style.transform = 'translate(0, 0)'; // Bin returns to original position using transition
+                
+                // Force reflow for item's instant snap
+                void itemElement.offsetWidth;
+
+                // STEP 4: After return animation completes, move to next item
+                setTimeout(() => {
+                    currentIndex++;
+                    moveItem();
+                }, 100); // Small delay before next item begins (to allow for full snap back)
+            }, 1000); // Duration for animation to meeting point
+        }
+
+        function updateLoadingText() {
+            let textIndex = 0;
+            setInterval(() => {
+                textIndex = (textIndex + 1) % loadingTexts.length;
+                loadingElement.textContent = loadingTexts[textIndex];
+            }, 3000);
+        }
+
+        // Start animations
+        moveItem();
+        updateLoadingText();
+
+        // Redirect after loading (removed, now handled after all items are processed)
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 13000); // Redirect after 13 seconds to match progress bar
+    </script>
+</body>
+</html> 
