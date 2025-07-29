@@ -1,0 +1,23 @@
+{
+  "name": "ai-waste-segregation-advisor",
+  "version": "1.0.0",
+  "description": "AI-powered waste segregation advisor with image classification and chatbot",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python app.py",
+    "build": "echo 'No build step required for static site'",
+    "start": "python app.py"
+  },
+  "keywords": [
+    "ai",
+    "waste",
+    "segregation",
+    "classification",
+    "chatbot"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 
